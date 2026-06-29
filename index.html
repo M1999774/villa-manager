@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Villa Rental Manager 2026</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="overlay"></div>
+
+  <!-- LOGIN SCREEN -->
+  <div id="loginScreen" class="login-screen">
+    <div class="login-card">
+      <div class="login-icon">🔐</div>
+      <h2>Accès sécurisé</h2>
+      <p>Entrez le mot de passe pour accéder au système.</p>
+
+      <input id="passwordInput" type="password" placeholder="Mot de passe" />
+      <button id="loginBtn" type="button">Entrer</button>
+
+      <div id="loginError" class="login-error"></div>
+    </div>
+  </div>
+
+  <div class="app-shell">
+    <header class="hero card">
+      <div class="hero-left">
+        <p class="eyebrow">Gestion interne · Saison été 2026</p>
+        <h1>Villa Rental Manager</h1>
+        <p class="hero-text">
+          Gestion des réservations des deux appartements · Juin à Octobre 2026
+        </p>
+      </div>
+
+      <div class="hero-right">
+        <div class="hero-badge">
+          <span class="dot"></span>
+          Sauvegarde locale active
+        </div>
+        <div class="hero-note">
+          <strong>Règle importante :</strong>
+          le même jour peut servir de <b>sortie</b> et de <b>nouvelle entrée</b>.
+        </div>
+      </div>
+    </header>
+
+    <section class="toolbar card">
+      <div class="toolbar-left">
+        <h2>Appartement affiché dans le calendrier</h2>
+        <div class="apartment-tabs" id="apartmentTabs">
+          <button class="tab-btn active" data-apartment="Appartement 1 étage">
+            Appartement 1 étage
+          </button>
+          <button class="tab-btn" data-apartment="Appartement 2 étage">
+            Appartement 2 étage
+          </button>
+        </div>
+      </div>
+
+      <div class="toolbar-right">
+        <div class="season-chip">Période autorisée : 01/06/2026 → 31/10/2026</div>
+      </div>
+    </section>
+
+    <section id="alertPanel" class="alert-panel"></section>
+
+    <section class="dashboard-grid">
+      <div class="card form-card">
+        <div class="section-head">
+          <h2>Ajouter une réservation</h2>
+          <p>Le téléphone est optionnel. Les dates inversées sont refusées.</p>
+        </div>
+
+        <form id="bookingForm" novalidate>
+          <div class="form-grid">
+            <div class="field">
+              <label for="clientName">Nom *</label>
+              <input id="clientName" type="text" placeholder="Nom du client" />
+            </div>
+
+            <div class="field">
+              <label for="clientPhone">Téléphone</label>
+              <input id="clientPhone" type="text" placeholder="Optionnel" />
+            </div>
+
+            <div class="field">
+              <label for="apartment">Appartement *</label>
+              <select id="apartment">
+                <option value="Appartement 1 étage">Appartement 1 étage</option>
+                <option value="Appartement 2 étage">Appartement 2 étage</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="totalAmount">Montant total (DA)</label>
+              <input id="totalAmount" type="number" min="0" placeholder="Optionnel" />
+            </div>
+
+            <div class="field">
+              <label for="startDate">Date d’entrée *</label>
+              <input id="startDate" type="date" />
+            </div>
+
+            <div class="field">
+              <label for="endDate">Date de sortie *</label>
+              <input id="endDate" type="date" />
+            </div>
+
+            <div class="field">
+              <label for="paidAmount">Montant payé (DA)</label>
+              <input id="paidAmount" type="number" min="0" placeholder="Optionnel" />
+            </div>
+
+            <div class="field field-readonly">
+              <label>Reste</label>
+              <div id="remainingPreview" class="readonly-box">-</div>
+            </div>
+          </div>
+
+          <div class="hint-box">
+            <span>Info :</span>
+            Le système empêche les doubles réservations dans le même appartement,
+            mais il accepte qu’un client sorte le même jour où un autre entre.
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="primary-btn">Ajouter la réservation</button>
+            <button type="button" class="secondary-btn" id="clearFormBtn">Vider les champs</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card stats-card">
+        <div class="section-head">
+          <h2>Résumé rapide</h2>
+          <p id="selectedApartmentLabel">Appartement 1 étage</p>
+        </div>
+
+        <div class="stats-grid" id="statsGrid"></div>
+
+        <div class="legend-box">
+          <h3>Légende du calendrier</h3>
+          <div class="legend-list">
+            <div class="legend-item"><span class="legend-color lg-empty"></span> Libre</div>
+            <div class="legend-item"><span class="legend-color lg-checkin"></span> Entrée</div>
+            <div class="legend-item"><span class="legend-color lg-checkout"></span> Sortie</div>
+            <div class="legend-item"><span class="legend-color lg-occupied"></span> Occupé</div>
+            <div class="legend-item"><span class="legend-color lg-turnover"></span> Sortie + Entrée</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card calendar-card">
+      <div class="section-head">
+        <h2>Calendrier des réservations</h2>
+        <p>
+          Grand calendrier coloré pour visualiser les jours réservés de
+          <strong id="calendarApartmentTitle">Appartement 1 étage</strong>.
+        </p>
+      </div>
+
+      <div id="calendarMonths" class="months-grid"></div>
+    </section>
+
+    <section class="card availability-card">
+      <div class="section-head availability-head">
+        <div>
+          <h2>Disponibilités à copier</h2>
+          <p>
+            Les périodes disponibles pour
+            <strong id="availabilityApartmentTitle">Appartement 1 étage</strong>.
+          </p>
+        </div>
+
+        <button type="button" class="secondary-btn" id="copyAvailabilityBtn">
+          Copier le texte
+        </button>
+      </div>
+
+      <textarea id="availabilityText" class="availability-text" readonly></textarea>
+    </section>
+
+    <section class="card table-card">
+      <div class="section-head">
+        <h2>Liste des réservations</h2>
+        <p>Toutes les réservations enregistrées pour les deux appartements.</p>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Nom</th>
+              <th>Téléphone</th>
+              <th>Appartement</th>
+              <th>Entrée</th>
+              <th>Sortie</th>
+              <th>Nb jours</th>
+              <th>Total</th>
+              <th>Payé</th>
+              <th>Reste</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="bookingsTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <div id="toastContainer" class="toast-container"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
