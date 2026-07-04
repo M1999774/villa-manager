@@ -60,6 +60,84 @@ body{
   -webkit-backdrop-filter: blur(12px);
 }
 
+/* LOGIN */
+.login-screen{
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background:
+    linear-gradient(135deg, rgba(2,6,23,0.94), rgba(8,18,33,0.92)),
+    rgba(0,0,0,0.75);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.login-card{
+  width: min(380px, 100%);
+  background: rgba(8,18,33,0.92);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 24px;
+  padding: 28px;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.55);
+  text-align: center;
+  backdrop-filter: blur(14px);
+}
+
+.login-icon{
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 14px;
+  border-radius: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(45,212,191,0.25), rgba(56,189,248,0.18));
+  font-size: 30px;
+}
+
+.login-card h2{
+  margin: 0 0 8px;
+  font-size: 26px;
+}
+
+.login-card p{
+  margin: 0 0 18px;
+  color: var(--text-soft);
+  line-height: 1.5;
+}
+
+.login-card input{
+  width: 100%;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.06);
+  color: white;
+  padding: 15px 14px;
+  border-radius: 15px;
+  outline: none;
+  margin-bottom: 12px;
+}
+
+.login-card button{
+  width: 100%;
+  border: none;
+  cursor: pointer;
+  padding: 15px 16px;
+  border-radius: 15px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-2));
+  color: #052033;
+  font-weight: bold;
+}
+
+.login-error{
+  min-height: 20px;
+  margin-top: 12px;
+  color: #fecaca;
+  font-weight: bold;
+}
+
+/* ORIGINAL DESIGN */
 .hero{
   display: flex;
   justify-content: space-between;
@@ -238,7 +316,7 @@ body{
   margin-bottom: 18px;
 }
 
-.form-card, .stats-card, .calendar-card, .table-card{
+.form-card, .stats-card, .calendar-card, .table-card, .availability-card{
   padding: 22px;
 }
 
@@ -546,6 +624,39 @@ input:focus, select:focus{
   -webkit-box-orient: vertical;
 }
 
+/* DISPONIBILITÉ */
+.availability-card{
+  margin-bottom: 18px;
+}
+
+.availability-head{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.availability-text{
+  width: 100%;
+  min-height: 220px;
+  resize: vertical;
+  border: 1px solid rgba(45,212,191,0.22);
+  background: rgba(255,255,255,0.05);
+  color: #e7faff;
+  padding: 16px;
+  border-radius: 16px;
+  outline: none;
+  font-size: 15px;
+  line-height: 1.75;
+  font-weight: bold;
+  white-space: pre-line;
+}
+
+.availability-text:focus{
+  border-color: rgba(45,212,191,0.55);
+  box-shadow: 0 0 0 4px rgba(45,212,191,0.08);
+}
+
 .table-wrap{
   overflow-x: auto;
 }
@@ -679,7 +790,7 @@ tbody tr:hover{
 }
 
 @media (max-width: 860px){
-  .hero, .toolbar{
+  .hero, .toolbar, .availability-head{
     flex-direction: column;
     align-items: stretch;
   }
