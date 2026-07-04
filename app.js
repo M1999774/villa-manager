@@ -1,4 +1,7 @@
+const PASSWORD = "1234";
+const AUTH_KEY = "villa_manager_auth_ok";
 const STORAGE_KEY = "villa_manager_pro_2026_v1";
+
 const APARTMENTS = ["Appartement 1 étage", "Appartement 2 étage"];
 const SEASON_START = "2026-06-01";
 const SEASON_END = "2026-10-31";
@@ -69,6 +72,11 @@ const SEED_BOOKINGS = [
   }
 ];
 
+const loginScreen = document.getElementById("loginScreen");
+const passwordInput = document.getElementById("passwordInput");
+const loginBtn = document.getElementById("loginBtn");
+const loginError = document.getElementById("loginError");
+
 const form = document.getElementById("bookingForm");
 const clientNameInput = document.getElementById("clientName");
 const clientPhoneInput = document.getElementById("clientPhone");
@@ -86,6 +94,9 @@ const calendarMonths = document.getElementById("calendarMonths");
 const bookingsTableBody = document.getElementById("bookingsTableBody");
 const selectedApartmentLabel = document.getElementById("selectedApartmentLabel");
 const calendarApartmentTitle = document.getElementById("calendarApartmentTitle");
+const availabilityApartmentTitle = document.getElementById("availabilityApartmentTitle");
+const availabilityText = document.getElementById("availabilityText");
+const copyAvailabilityBtn = document.getElementById("copyAvailabilityBtn");
 const toastContainer = document.getElementById("toastContainer");
 
 let selectedApartment = APARTMENTS[0];
@@ -94,6 +105,8 @@ let bookings = loadBookings();
 init();
 
 function init() {
+  setupLogin();
+
   startDateInput.min = SEASON_START;
   startDateInput.max = SEASON_END;
   endDateInput.min = SEASON_START;
@@ -113,6 +126,7 @@ function init() {
   apartmentTabs.addEventListener("click", (e) => {
     const btn = e.target.closest(".tab-btn");
     if (!btn) return;
+
     selectedApartment = btn.dataset.apartment;
     apartmentSelect.value = selectedApartment;
     updateActiveTab();
@@ -126,6 +140,36 @@ function init() {
     const bookingId = btn.dataset.id;
     removeBooking(bookingId);
   });
+
+  copyAvailabilityBtn.addEventListener("click", copyAvailabilityText);
+}
+
+function setupLogin() {
+  if (localStorage.getItem(AUTH_KEY) === "ok") {
+    loginScreen.style.display = "none";
+  }
+
+  loginBtn.addEventListener("click", checkPassword);
+
+  passwordInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      checkPassword();
+    }
+  });
+}
+
+function checkPassword() {
+  const value = passwordInput.value;
+
+  if (value === PASSWORD) {
+    localStorage.setItem(AUTH_KEY, "ok");
+    loginScreen.style.display = "none";
+    showToast("✅ Accès autorisé.", "success");
+  } else {
+    loginError.textContent = "❌ Mot de passe incorrect.";
+    passwordInput.value = "";
+    passwordInput.focus();
+  }
 }
 
 function loadBookings() {
@@ -342,12 +386,6 @@ function validateBooking(booking) {
   return errors;
 }
 
-/*
-  Règle importante :
-  - Le système accepte qu'un client sorte le même jour où un autre entre.
-  - Donc : si nouvelle entrée = ancienne sortie, c'est autorisé.
-  - On bloque seulement le vrai chevauchement.
-*/
 function hasConflict(newBooking) {
   const newStart = parseDate(newBooking.start);
   const newEnd = parseDate(newBooking.end);
@@ -378,9 +416,12 @@ function renderAll() {
   renderStats();
   renderAlertPanel();
   renderCalendar();
+  renderAvailabilityText();
   renderTable();
+
   selectedApartmentLabel.textContent = selectedApartment;
   calendarApartmentTitle.textContent = selectedApartment;
+  availabilityApartmentTitle.textContent = selectedApartment;
 }
 
 function renderStats() {
@@ -521,7 +562,6 @@ function renderCalendar() {
       const firstDay = new Date(year, month, 1);
       const lastDate = new Date(year, month + 1, 0).getDate();
 
-      // Monday first
       const offset = (firstDay.getDay() + 6) % 7;
 
       let placeholders = "";
@@ -595,6 +635,99 @@ function renderCalendar() {
       `;
     })
     .join("");
+}
+
+function renderAvailabilityText() {
+  const months = [
+    { name: "Juin 2026", start: "2026-06-01", end: "2026-06-30" },
+    { name: "Juillet 2026", start: "2026-07-01", end: "2026-07-31" },
+    { name: "Août 2026", start: "2026-08-01", end: "2026-08-31" },
+    { name: "Septembre 2026", start: "2026-09-01", end: "2026-09-30" }
+  ];
+
+  const apartmentBookings = bookings.filter(
+    (booking) => booking.apartment === selectedApartment
+  );
+
+  let finalText = `Disponibilités - ${selectedApartment}\n\n`;
+
+  months.forEach((month) => {
+    const ranges = [];
+    let rangeStart = null;
+
+    for (
+      let d = parseDate(month.start);
+      d <= parseDate(month.end);
+      d = addDays(d, 1)
+    ) {
+      const dateStr = formatToISO(d);
+      const available = isDateAvailableForCopy(dateStr, apartmentBookings);
+
+      if (available && !rangeStart) {
+        rangeStart = dateStr;
+      }
+
+      if (!available && rangeStart) {
+        const previousDay = formatToISO(addDays(d, -1));
+        ranges.push({
+          start: rangeStart,
+          end: previousDay
+        });
+        rangeStart = null;
+      }
+    }
+
+    if (rangeStart) {
+      ranges.push({
+        start: rangeStart,
+        end: month.end
+      });
+    }
+
+    finalText += `${month.name} :\n`;
+
+    if (ranges.length === 0) {
+      finalText += `Aucune disponibilité.\n\n`;
+    } else {
+      ranges.forEach((range) => {
+        finalText += `Disponible de ${formatDate(range.start)} → ${formatDate(range.end)}\n`;
+      });
+      finalText += `\n`;
+    }
+  });
+
+  availabilityText.value = finalText.trim();
+}
+
+function isDateAvailableForCopy(dateStr, apartmentBookings) {
+  const hasCheckIn = apartmentBookings.some((booking) => booking.start === dateStr);
+
+  if (hasCheckIn) {
+    return false;
+  }
+
+  const isInsideStay = apartmentBookings.some((booking) => {
+    return dateStr > booking.start && dateStr < booking.end;
+  });
+
+  if (isInsideStay) {
+    return false;
+  }
+
+  return true;
+}
+
+function copyAvailabilityText() {
+  availabilityText.select();
+  availabilityText.setSelectionRange(0, 99999);
+
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(availabilityText.value);
+  } else {
+    document.execCommand("copy");
+  }
+
+  showToast("✅ Texte des disponibilités copié.", "success");
 }
 
 function renderTable() {
