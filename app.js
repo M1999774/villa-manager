@@ -1,5 +1,5 @@
 const PASSWORD = "1234";
-const AUTH_KEY = "villa_manager_auth_ok";
+const AUTH_KEY = "villa_manager_auth_ok_v5";
 const STORAGE_KEY = "villa_manager_pro_2026_v1";
 
 const APARTMENTS = ["Appartement 1 étage", "Appartement 2 étage"];
